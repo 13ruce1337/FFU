@@ -16,6 +16,9 @@ If you're new to FFU Builder or new to the FFU Builder UI version, check out the
 
 This will be the fastest way to create your first FFU. There's a new [FFU Builder Quickstart Youtube video](https://youtu.be/38sUc3M5Yls) based on the 2604.1 release.
 
+## Creating WinPE Media for USB
+There are currently two ways to do this. If you have at least 32GB available in a flash drive I would recommend the using `Create-PEMedia.ps1` then using the `USBImagingToolCreator.ps1` to create your disk. If you just need WinPE without the bells and whistles of `Create-PEMedia.ps1` then you'll have to create the original WinPE media from the adk manually, then run the `Inject_Components.ps1` to get the tools needed to FFU. You may also need to grab storage controller drivers for the hardware.
+
 ## Older Youtube Videos
 
 [2602.1 UI Preview Quickstart Video](https://www.youtube.com/watch?v=kOIK5OmDugc) - Original quickstart video without the Fluent UI. 
