@@ -29,18 +29,24 @@ If you have a flash drive with 32GB or more the fastest way to get started would
 
 To create custom PE media follow these steps.
 1. (Optional) Create partitioned flash disk
-    * run `diskpart` in powershell
-    * `list disk` REM Replace X with your USB disk number
-    * `clean`
-    * `convert mbr`
-    * `create partition primary size=2048`
-    * `active`
-    * `format fs=fat32 quick label="Boot"`
-    * `assign`
-    * `create partition primary`
-    * `format fs=ntfs quick label="Deploy"`
-    * `assign`
-    * `exit`
+
+   Run `diskpart` in PowerShell, then:
+
+   ```
+   list disk
+   REM Replace X with your USB disk number
+   select disk X
+   clean
+   convert mbr
+   create partition primary size=2048
+   active
+   format fs=fat32 quick label="Boot"
+   assign
+   create partition primary
+   format fs=ntfs quick label="Deploy"
+   assign
+   exit
+   ```
 
 2. Create PE Media
 
