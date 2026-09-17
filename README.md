@@ -24,18 +24,32 @@ If you're new to FFU Builder or new to the FFU Builder UI version, check out the
 
 This will be the fastest way to create your first FFU. There's a new [FFU Builder Quickstart Youtube video](https://youtu.be/38sUc3M5Yls) based on the 2604.1 release.
 
-## Creation of FFU
+## 1. Setup bootable medium (or pxe with WinPE)
+If you have a flash drive with 32GB or more the fastest way to get started would be to follow the above link and use the `Create-PEMedia.ps1` script with `USBImagingToolCreator.ps1`. This will ultimately create a flash drive with 2 partitions, one bootable and one mountable storage with space for FFUs.
+
+To create custom PE media follow these steps.
+1. (Optional) Create partitioned flash disk
+    * run `diskpart` in powershell
+    * `list disk` REM Replace X with your USB disk number
+    * `clean`
+    * `convert mbr`
+
+create partition primary size=2048
+active
+format fs=fat32 quick label="Boot"
+assign
+
+create partition primary
+format fs=ntfs quick label="Deploy"
+assign
+
+exit
+
+
+## 2. Creation of FFU
 1. **Harden VHDX**
    Run the below command after copying the sysprep-ffu.xml into C:\Build\
    Note this file will be removed
    `C:\Windows\System32\Sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:C:\Build\sysprep-ffu.xml`
 2. **Make FFU**
    On the host or machine that has the VHDX run `make_ffu.ps1` after filling in the variables.
-   
-## Older Youtube Videos
-
-[2602.1 UI Preview Quickstart Video](https://www.youtube.com/watch?v=kOIK5OmDugc) - Original quickstart video without the Fluent UI. 
-
-[2507.1 UI Preview Video](https://www.youtube.com/watch?v=oozG1aVcg9M) - First UI Preview release video. This goes deeper than the quick start video, but is missing some features that have been added since 2507.1 was released.
-
-[2407.2 Video](https://www.youtube.com/watch?v=rqXRbgeeKSQ) - This was the main deep-dive video on FFU Builder (before it had that name). This is a good deep dive into how the BuildFFUVM.ps1 script works, but a lot has changed since that build.
