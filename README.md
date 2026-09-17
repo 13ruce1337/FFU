@@ -1,5 +1,4 @@
-[!NOTE]
-This fork was created to isolate the tools used in the original repository to more easily create custom setups.
+>[!INFO] This fork was created to isolate the tools used in the original repository to more easily create custom setups.
 
 # Getting Started
 
@@ -39,10 +38,14 @@ Use the `Create-Custom-PEMedia.ps1` script to create a `WinPE_ffu` folder. You'l
 ## 2. Create Virtual Machine
 The [PSTools](https://github.com/13ruce1337/pstools) repository has a script (`provision_windows.ps1`) that can quickly spin up a VM after replacing the location for the Windows ISO at the top. You'll need to download the Windows ISO from the Microsoft webpage. The Windows Media Creation Tool works great. There are also instructions for using an `autounattend.xml` for further automation.
 
-## 3. Creation of FFU
-1. **Harden VHDX**
+## 3. Customize Virtual Machine
+Update windows and add any applications needed for the build. Once finished, this could be a good spot to export the VM or make a checkpoint.
+
+## 4. Creation of FFU
+* Harden VHDX
    Run the below command after copying the sysprep-ffu.xml into C:\Build\
-   Note this file will be removed
+   >[!WARNING] `C:\Build\sysprep-ffu.xml` will be removed
+   
    `C:\Windows\System32\Sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:C:\Build\sysprep-ffu.xml`
-2. **Make FFU**
+* Make FFU
    On the host or machine that has the VHDX run `make_ffu.ps1` after filling in the variables.
