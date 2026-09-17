@@ -33,18 +33,14 @@ To create custom PE media follow these steps.
     * `list disk` REM Replace X with your USB disk number
     * `clean`
     * `convert mbr`
-
-create partition primary size=2048
-active
-format fs=fat32 quick label="Boot"
-assign
-
-create partition primary
-format fs=ntfs quick label="Deploy"
-assign
-
-exit
-
+    * `create partition primary size=2048`
+    * `active`
+    * `format fs=fat32 quick label="Boot"`
+    * `assign`
+    * `create partition primary`
+    * `format fs=ntfs quick label="Deploy"`
+    * `assign`
+    * `exit`
 
 ## 2. Creation of FFU
 1. **Harden VHDX**
