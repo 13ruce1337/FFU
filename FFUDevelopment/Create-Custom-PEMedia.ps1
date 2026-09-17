@@ -29,7 +29,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 # ---------------------------------------------------------------------------
-# 1. Create the working copy of WinPE media (skip if it already exists)
+# 1. Create the working copy of WinPE media (always rebuilt from scratch)
 #    copype is a batch script that lives under the ADK's Deployment Tools
 #    folder and depends on environment variables/PATH entries set up by
 #    DandISetEnv.bat. Rather than requiring you to launch the special
@@ -37,19 +37,20 @@ $ErrorActionPreference = "Stop"
 #    and copype together in a single cmd.exe session so this script works
 #    from a plain PowerShell prompt.
 # ---------------------------------------------------------------------------
-if (-not (Test-Path $WorkingDir)) {
-    $DandIEnv = Join-Path $AdkRoot "Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat"
-    if (-not (Test-Path $DandIEnv)) {
-        throw "Could not find DandISetEnv.bat at '$DandIEnv'. Check `$AdkRoot points at your ADK install (e.g. 'C:\Program Files (x86)\Windows Kits\10\')."
-    }
+if (Test-Path $WorkingDir) {
+    Write-Host "Existing working directory found at $WorkingDir, removing so it can be rebuilt..."
+    Remove-Item -Path $WorkingDir -Recurse -Force
+}
 
-    Write-Host "Creating WinPE working copy at $WorkingDir ..."
-    & cmd /c """$DandIEnv"" && copype $Arch ""$WorkingDir"""
-    if ($LASTEXITCODE -ne 0) {
-        throw "copype failed with exit code $LASTEXITCODE."
-    }
-} else {
-    Write-Host "Working directory $WorkingDir already exists, reusing it."
+$DandIEnv = Join-Path $AdkRoot "Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat"
+if (-not (Test-Path $DandIEnv)) {
+    throw "Could not find DandISetEnv.bat at '$DandIEnv'. Check `$AdkRoot points at your ADK install (e.g. 'C:\Program Files (x86)\Windows Kits\10\')."
+}
+
+Write-Host "Creating WinPE working copy at $WorkingDir ..."
+& cmd /c """$DandIEnv"" && copype $Arch ""$WorkingDir"""
+if ($LASTEXITCODE -ne 0) {
+    throw "copype failed with exit code $LASTEXITCODE."
 }
 
 $BootWim  = Join-Path $WorkingDir "media\sources\boot.wim"
