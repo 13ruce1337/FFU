@@ -4,8 +4,10 @@
     components injected, then commits the image for use with wimboot/iPXE.
 
 .NOTES
-    Run from an elevated "Deployment and Imaging Tools Environment" prompt
-    (installed with the Windows ADK + WinPE add-on).
+    Can be run from a normal PowerShell prompt (elevated). The script
+    internally calls DandISetEnv.bat (from the Windows ADK) before invoking
+    copype, so you no longer need to launch the "Deployment and Imaging
+    Tools Environment" shortcut manually.
 
     Driver injection is model-agnostic: point $DriverRoot at a folder tree
     containing driver packages for every model you support (organize into
@@ -20,6 +22,7 @@ param(
     [string]$Arch        = "amd64",
     [string]$WorkingDir  = "$PSScriptRoot\WinPE_ffu",
     [string]$DriverRoot  = "$PSScriptRoot\Drivers",
+    [string]$AdkRoot     = "C:\Program Files (x86)\Windows Kits\10\",
     [string]$AdkOcRoot   = "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment"
 )
 
@@ -27,10 +30,24 @@ $ErrorActionPreference = "Stop"
 
 # ---------------------------------------------------------------------------
 # 1. Create the working copy of WinPE media (skip if it already exists)
+#    copype is a batch script that lives under the ADK's Deployment Tools
+#    folder and depends on environment variables/PATH entries set up by
+#    DandISetEnv.bat. Rather than requiring you to launch the special
+#    "Deployment and Imaging Tools Environment" shell, we run DandISetEnv.bat
+#    and copype together in a single cmd.exe session so this script works
+#    from a plain PowerShell prompt.
 # ---------------------------------------------------------------------------
 if (-not (Test-Path $WorkingDir)) {
+    $DandIEnv = Join-Path $AdkRoot "Assessment and Deployment Kit\Deployment Tools\DandISetEnv.bat"
+    if (-not (Test-Path $DandIEnv)) {
+        throw "Could not find DandISetEnv.bat at '$DandIEnv'. Check `$AdkRoot points at your ADK install (e.g. 'C:\Program Files (x86)\Windows Kits\10\')."
+    }
+
     Write-Host "Creating WinPE working copy at $WorkingDir ..."
-    & copype $Arch $WorkingDir
+    & cmd /c """$DandIEnv"" && copype $Arch ""$WorkingDir"""
+    if ($LASTEXITCODE -ne 0) {
+        throw "copype failed with exit code $LASTEXITCODE."
+    }
 } else {
     Write-Host "Working directory $WorkingDir already exists, reusing it."
 }
