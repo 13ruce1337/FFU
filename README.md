@@ -24,6 +24,14 @@ If you're new to FFU Builder or new to the FFU Builder UI version, check out the
 
 This will be the fastest way to create your first FFU. There's a new [FFU Builder Quickstart Youtube video](https://youtu.be/38sUc3M5Yls) based on the 2604.1 release.
 
+## Creation of FFU
+1. **Harden VHDX**
+   Run the below command after copying the sysprep-ffu.xml into C:\Build\
+   Note this file will be removed
+   `C:\Windows\System32\Sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:C:\Build\sysprep-ffu.xml`
+2. **Make FFU**
+   On the host or machine that has the VHDX run `make_ffu.ps1` after filling in the variables.
+   
 ## Older Youtube Videos
 
 [2602.1 UI Preview Quickstart Video](https://www.youtube.com/watch?v=kOIK5OmDugc) - Original quickstart video without the Fluent UI. 
