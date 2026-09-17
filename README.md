@@ -42,6 +42,8 @@ To create custom PE media follow these steps.
     * `assign`
     * `exit`
 
+2. Create PE Media
+
 ## 2. Creation of FFU
 1. **Harden VHDX**
    Run the below command after copying the sysprep-ffu.xml into C:\Build\
