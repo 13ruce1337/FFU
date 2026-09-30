@@ -1,28 +1,80 @@
-# Using Full Flash Update (FFU) files to speed up Windows deployment
-
-### Requirements
-* Hyper-V Enabled in features
-```
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
-```
-* Poweshell 7
-```
-winget install --id Microsoft.PowerShell --source winget --installer-type wix
-```
+>[!NOTE]
+>This fork was created to isolate the tools used in the original repository to more easily create custom setups.
 
 # Getting Started
 
 If you're new to FFU Builder or new to the FFU Builder UI version, check out the [Quick Start Guide](https://rbalsleymsft.github.io/FFU/quickstart.html). 
 
-This will be the fastest way to create your first FFU. There's a new [FFU Builder Quickstart Youtube video](https://youtu.be/38sUc3M5Yls) based on the 2604.1 release.
+ If you have a flash drive with 32GB or more the fastest way to get started would be to use the `BuildFFUVM_UI.ps1` to create the FFU and `Create-PEMedia.ps1` script with `USBImagingToolCreator.ps1` to create the bootable medium. 
 
-## Creating WinPE Media for USB
-There are currently two ways to do this. If you have at least 32GB available in a flash drive I would recommend the using `Create-PEMedia.ps1` then using the `USBImagingToolCreator.ps1` to create your disk. If you just need WinPE without the bells and whistles of `Create-PEMedia.ps1` then you'll have to create the original WinPE media from the adk manually, then run the `Inject_Components.ps1` to get the tools needed to FFU. You may also need to grab storage controller drivers for the hardware.
+# Requirements
 
-## Older Youtube Videos
+Hyper-V Enabled in features
 
-[2602.1 UI Preview Quickstart Video](https://www.youtube.com/watch?v=kOIK5OmDugc) - Original quickstart video without the Fluent UI. 
+`Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All`
 
-[2507.1 UI Preview Video](https://www.youtube.com/watch?v=oozG1aVcg9M) - First UI Preview release video. This goes deeper than the quick start video, but is missing some features that have been added since 2507.1 was released.
+Poweshell 7
 
-[2407.2 Video](https://www.youtube.com/watch?v=rqXRbgeeKSQ) - This was the main deep-dive video on FFU Builder (before it had that name). This is a good deep dive into how the BuildFFUVM.ps1 script works, but a lot has changed since that build.
+`winget install --id Microsoft.PowerShell --source winget --installer-type wix`
+
+# Custom Guide
+
+## 1. Setup Bootable Medium (or PXE with WinPE)
+
+ If you have 16GB or less you likely will not be able to fit an FFU file on it with WinPE, but could serve the files via SMB or another drive.
+
+To create custom PE media follow these steps.
+
+#### Create partitioned flash disk
+
+   Run `diskpart` in PowerShell, then:
+
+   ```
+   list disk
+   REM Replace X with your USB disk number
+   select disk X
+   clean
+   convert mbr
+   create partition primary size=2048
+   active
+   format fs=fat32 quick label="Boot"
+   assign
+   create partition primary
+   format fs=ntfs quick label="Deploy"
+   assign
+   exit
+   ```
+
+#### Create PE Media
+
+Use the `Create-Custom-PEMedia.ps1` script to create a `WinPE_ffu` folder. You'll copy everything from `WinPE_ffu\media` to the `BOOT` partition of the flash drive. This will make the drive bootable.
+
+## 2. Create Virtual Machine
+
+>[!Warning]
+>Do not attach the VM to the internet[^1]
+
+The [PSTools](https://github.com/13ruce1337/pstools) repository has a script (`provision_windows.ps1`) that can quickly spin up a VM after replacing the location for the Windows ISO at the top. You'll need to download the Windows ISO from Microsoft[^2]. There are also instructions for using an `autounattend.xml` for further automation.
+
+## 3. Customize Virtual Machine
+
+This might be a good spot to snapshot then add any applications needed for the build.
+
+## 4. Creation of FFU
+
+* Harden VHDX
+   Run the below command after copying the `sysprep-ffu.xml` into `C:\Build\`
+
+> [!NOTE]
+> `C:\Build\sysprep-ffu.xml` will be removed
+   
+   `C:\Windows\System32\Sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:C:\Build\sysprep-ffu.xml`
+* Make FFU
+   On the host or machine that has the VHDX run `make_ffu.ps1` after filling in the variables.
+
+## 5. Flashing the FFU file
+
+* After you create the FFU file, copy it to the USB stick or mountable medium. If you used the `USBImagingToolCreator.ps1`, copy it over to the Deploy partition. 
+
+[^1]: When the VM connects to the internet it starts the process of updating. This starts a service that doesn't allow sysprep to work.
+[^2]: Microsoft doesn't provide a direct link to download. You'll likely have to use the Media Creation Tool or similar to get the ISO.
